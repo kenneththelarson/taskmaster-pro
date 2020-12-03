@@ -99,7 +99,7 @@ $(".list-group").on("click", "span", function () {
   // enable jquery ui datepicker
   dateInput.datepicker({
     minDate: 1,
-    onClose: function() {
+    onClose: function () {
       // when calendar is closed, force a "change" event on the 'dateInput'
       $(this).trigger("change");
     }
@@ -136,17 +136,20 @@ $(".card .list-group").sortable({
   tolerance: "pointer",
   helper: "clone",
   activate: function (event) {
-    console.log("activate", this);
+    $(this).addClass("dropover");
+    $(".bottom-trash").addClass("bottom-trash-drag");
   },
   deactivate: function (event) {
-    console.log("deactivate", this);
+    $(this).removeClass("dropover");
+    $(".bottom-trash").removeClass("bottom-trash-drag");
   },
   over: function (event) {
-    console.log("over", event.target);
+    $(event.target).addClass("dropover-active");
   },
   out: function (event) {
-    console.log("out", event.target);
+    $(event.target).removeClass("dropover-active");
   },
+
   update: function (event) {
     // array to store the task data in
     var tempArr = [];
@@ -171,34 +174,31 @@ $(".card .list-group").sortable({
     });
 
     var arrName = $(this)
-    .attr("id")
-    .replace("list-", "");
+      .attr("id")
+      .replace("list-", "");
 
     // update array on tasks object and save
     tasks[arrName] = tempArr;
     saveTasks();
-
-    console.log(tempArr);
-
   }
 });
 
 $("#trash").droppable({
   accept: ".card .list-group-item",
   tolerance: "touch",
-  drop: function(event, ui) {
+  drop: function (event, ui) {
     ui.draggable.remove();
-    console.log("drop");
+    $(".bottom-trash").removeClass("bottom-trash-active");
   },
-  over: function(event, ui) {
-    console.log("over");
+  over: function (event, ui) {
+    $(".bottom-trash").addClass("bottom-trash-active");
   },
-  out: function(event, ui) {
-    console.log("out");
+  out: function (event, ui) {
+    $(".bottom-trash").removeClass("bottom-trash-active");
   }
 });
 
-var auditTask = function(taskEl) {
+var auditTask = function (taskEl) {
   // get date from task element
   var date = $(taskEl).find("span").text().trim();
 
@@ -235,7 +235,7 @@ $("#modalDueDate").datepicker({
 });
 
 // save button in modal was clicked
-$("#task-form-modal .btn-primary").click(function () {
+$("#task-form-modal .btn-save").click(function () {
   // get form values
   var taskText = $("#modalTaskDescription").val();
   var taskDate = $("#modalDueDate").val();
@@ -268,4 +268,8 @@ $("#remove-tasks").on("click", function () {
 // load tasks for the first time
 loadTasks();
 
-
+setInterval(function () {
+  $(".card .list-group-item").each(function (index, el) {
+    auditTask(el);
+  });
+}, (1000 * 60) * 30);
